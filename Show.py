@@ -12,7 +12,8 @@ class Show:
         self.k=np.array([[1.,1.]])
         
         pygame.init()
-        self.canvas:pygame.Surface = pygame.display.set_mode(self.window_size.tolist()[0])
+        self.screen:pygame.Surface = pygame.display.set_mode(self.window_size.tolist()[0])
+        
         pygame.display.set_caption(caption)
         self.transparent_surface = pygame.Surface(self.window_size.tolist()[0], pygame.SRCALPHA)
         self.transparent_surface.fill((0, 0, 0, 1))
@@ -21,20 +22,23 @@ class Show:
         self.showcount = 10
         self.gridsize = np.array([[80,80]])
         self.gridstart= np.array([[0,0]])
+        self.gridcanvas= pygame.Surface(self.window_size.tolist()[0], pygame.SRCALPHA)
+        self.canvas = pygame.Surface(self.window_size.tolist()[0], pygame.SRCALPHA)
+        self.drawgrid()
     def drawgrid(self):
         linesnum=np.ceil(self.window_size/self.gridsize).astype(int)
-
+        self.gridcanvas.fill((0,0,0,0))
         for i in range(linesnum[0,0]):
-            pygame.draw.aaline(
-                self.canvas,
-                (128,128,128,28),
+            pygame.draw.line(
+                self.gridcanvas,
+                (128,128,128),
                 (self.gridstart[0,0]+i*self.gridsize[0,0],0),
                 (self.gridstart[0,0]+i*self.gridsize[0,0],self.window_size[0,1]),
             )
         for i in range(linesnum[0,1]):
-            pygame.draw.aaline(
-                self.canvas,
-                (128,128,128,28),
+            pygame.draw.line(
+                self.gridcanvas,
+                (128,128,128),
                 (0,self.gridstart[0,1]+i*self.gridsize[0,1]),
                 (self.window_size[0,0],self.gridstart[0,1]+i*self.gridsize[0,1]),
             )
@@ -53,29 +57,34 @@ class Show:
             k=np.maximum(abs((i-self.center)/(self.window_size-self.center)),k)
         k[0,0]=max(k[0,0],k[0,1])
         k[0,1]=k[0,0]
-        self.updategrid(self.k,k)
+        t=self.k.copy()
         self.k=k
+        return [t,k]
         
     def update(self,sys:System,msg=None):
         spos=list(sys.objpos())
-        self.updatek(spos)
         sF=list(sys.objFs())
         spos=self.postranslate(spos)
         spos=misc.np_toList(spos)
         sF=misc.np_toList(sF)
 
         self.count+=1
+
+        ks=self.updatek(spos)
+        self.updategrid(*ks)
+        self.drawgrid()
         if self.count % self.showcount != 0:
             return
-        self.canvas.blit(self.transparent_surface, (0, 0))
-
-        self.drawgrid()
+        
         if msg["pos"]==1:
             for i in spos:
                 pygame.draw.circle(self.canvas,(255,255,255),i,1)
         if msg["F"]==1:
             for i in range(len(sF)):
                 pygame.draw.aaline(self.canvas,(255,0,0),spos[i],[spos[i][0]+sF[i][0],spos[i][1]+sF[i][1]])
+        self.screen.blit(self.canvas, (0, 0))
+        self.canvas.blit(self.transparent_surface, (0, 0))
+        self.screen.blit(self.gridcanvas, (0, 0))
         pygame.display.flip()
     
     def drawFunction(self,f,t):

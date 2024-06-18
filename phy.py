@@ -61,9 +61,9 @@ def f(obj:Object):
 
 
 def Projectile():
-    s=System([Object(1,(0,200),(10,-40))]
+    s=System([Object(1,(0,200),(10,40))]
              ,forces=[
-                 Force.Force(lambda obj:np.array([[0,obj.m*10]]))
+                 Force.Force(lambda obj:np.array([[0,obj.m*10]])-0.1*obj.v)
              ])
     canvas=Show((800,600),"三体")
     # ff=f(copy.deepcopy(s.objs[0]))
@@ -74,5 +74,7 @@ def Projectile():
           # 更新系统状态，获取每个对象受到的总力
         # canvas.drawFunction(ff,np.linspace(0,30,1000).tolist())
         canvas.update(s,msg)
+        time.sleep(0.001)
+
 if __name__ == "__main__":
-    threeStar()
+    Projectile()
