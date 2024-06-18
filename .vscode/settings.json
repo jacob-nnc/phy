@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "*.pdf": "plaintext",
-        "*.md": "markdown",
-        "vector": "cpp"
-    }
-}
